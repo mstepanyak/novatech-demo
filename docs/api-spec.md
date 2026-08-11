@@ -42,7 +42,7 @@ POST /contact
 {
   "id": "msg_abc123",
   "status": "received",
-  "message": "Thank you for your message. We'll be in touch soon."
+  "message": "Thank you! Your message has been sent. We'll get back to you soon."
 }
 ```
 
