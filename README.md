@@ -34,7 +34,7 @@ For the Figma MCP integration modules, you can duplicate the NovaTech designs to
 
 ### 3. Setting Up API Tokens
 
-To use the GitHub and Figma MCP servers, you'll need to configure API tokens as environment variables. This keeps your credentials secure and out of version control.
+To use the GitHub MCP server, you'll need to configure an API token as an environment variable. This keeps your credentials secure and out of version control. The Figma MCP server doesn't need a token — see [3.2](#32-figma-access-no-token-needed).
 
 #### 3.1 GitHub Token
 
@@ -69,47 +69,18 @@ Then restart your terminal.
 
 *Alternative:* You can also set it through System Properties → Environment Variables → New User variable
 
-#### 3.2 Figma Token (Optional)
+#### 3.2 Figma Access (No Token Needed)
 
-**For Remote MCP Server only** (Desktop MCP uses OAuth and doesn't need a token):
+The `figma-remote` server configured in `.mcp.json` connects to Figma's hosted remote MCP endpoint (`https://mcp.figma.com/mcp`) and authenticates via **OAuth**. The first time Claude Code uses a Figma tool, it opens a browser window for you to sign in — no personal access token is required.
 
-**Create a token:**
-1. Go to https://www.figma.com/settings
-2. Scroll to "Personal access tokens"
-3. Click "Generate new token"
-4. Give it a name like "Claude Code MCP"
-5. Copy the token
-
-**Set the environment variable:**
-
-**macOS (zsh):**
+**Verify the GitHub token is set:**
 ```bash
-echo 'export FIGMA_ACCESS_TOKEN=your_token_here' >> ~/.zshrc
-source ~/.zshrc
-```
-
-**Linux (bash):**
-```bash
-echo 'export FIGMA_ACCESS_TOKEN=your_token_here' >> ~/.bashrc
-source ~/.bashrc
-```
-
-**Windows:**
-```cmd
-setx FIGMA_ACCESS_TOKEN "your_token_here"
-```
-Then restart your terminal.
-
-**Verify tokens are set:**
-```bash
-# Check GitHub token
 echo $GITHUB_TOKEN
-
-# Check Figma token (if configured)
-echo $FIGMA_ACCESS_TOKEN
 ```
 
-From this point on, these environment variables will be available in every new terminal session, and Claude Code will pick them up automatically when it starts.
+From this point on, `GITHUB_TOKEN` will be available in every new terminal session, and Claude Code will pick it up automatically when it starts.
+
+**Alternative: token-based Figma configuration.** If you prefer connecting to Figma with a personal access token (e.g., using `X-Figma-Token` headers) instead of OAuth, see `.mcp.example.json` for a sample configuration. This isn't the setup used by this project's `.mcp.json`, but you can adapt it if needed.
 
 
 ### 4. Verify Setup
@@ -117,9 +88,11 @@ From this point on, these environment variables will be available in every new t
 ```bash
 # Open the website
 npm run dev
+```
 
 Open: **http://localhost:3000/pages/index.html**
 
+```bash
 # In another terminal, launch Claude Code
 claude
 ```
@@ -159,22 +132,26 @@ NovaTech Solutions is a fictional tech consultancy website. It serves as a hands
 ```
 novatech-demo/
 ├── src/
-│   ├── pages/          # HTML pages (5 pages)
-│   ├── css/            # Stylesheets with design system
-│   └── js/             # JavaScript modules
+│   ├── pages/          # HTML pages: index, services, portfolio, team, contact
+│   ├── css/            # base.css, components.css, variables.css, pages/*.css
+│   └── js/             # navigation.js, contact-form.js, validation.js, portfolio-filters.js
 ├── tests/
-│   ├── e2e/            # Playwright tests
-│   └── unit/           # Node.js unit tests
-├── docs/               # Design specs, API docs
-├── scripts/            # Automation scripts
+│   ├── e2e/            # Playwright tests (contact-form.spec.js, navigation.spec.js)
+│   └── unit/           # Node.js unit tests (validation.test.js)
+├── docs/
+│   ├── api-spec.md     # Backend API spec (planned; site currently simulates it client-side)
+│   └── figma-spec.md   # Design tokens: colors, typography, spacing, components
+├── scripts/            # setup-worktrees.sh (Git Worktrees automation)
 ├── .claude/
-│   ├── agents/         # Subagent definitions
-│   ├── skills/         # Custom skills
-│   ├── commands/       # Slash commands
+│   ├── agents/            # Subagent definitions
+│   ├── skills/            # Custom skills (code-review, code-documentation, accessibility-checker, form-validator)
+│   ├── rules/             # Project-specific rules (e.g., api-docs.md)
 │   ├── enterprise-templates/
-│   └── settings.json   # Hooks configuration
-├── .mcp.json           # MCP server configuration
-└── CLAUDE.md           # Project context
+│   ├── logs/              # Hook output logs (created at runtime)
+│   └── settings.json      # Hooks and permissions configuration
+├── .mcp.json              # MCP server configuration (GitHub, Figma remote)
+├── .mcp.example.json      # Alternate MCP example (token-based Figma, filesystem server)
+└── CLAUDE.md              # Project context
 ```
 
 ## Available Commands
@@ -182,13 +159,18 @@ novatech-demo/
 Run these from the project root (`novatech-demo/`):
 
 ```bash
-npm run dev         # Start local server
-npm run lint        # Run ESLint
-npm run format      # Run Prettier
-npm run test        # Run all tests
-npm run test:e2e    # Run Playwright E2E tests
-npm run test:unit   # Run unit tests
+npm run dev            # Start local server (serves src/ at http://localhost:3000)
+npm run lint           # Run ESLint on src/js/
+npm run lint:fix       # Run ESLint and auto-fix issues
+npm run format         # Run Prettier on src/**/*.{html,css,js}
+npm run format:check   # Check formatting without writing changes
+npm run test           # Run all tests (unit + e2e)
+npm run test:unit      # Run Node.js unit tests (tests/unit/)
+npm run test:e2e       # Run Playwright E2E tests (tests/e2e/)
+npm run test:e2e:ui    # Run Playwright E2E tests in UI mode
 ```
+
+See [`docs/api-spec.md`](docs/api-spec.md) for the (planned) backend API and [`docs/figma-spec.md`](docs/figma-spec.md) for design tokens (colors, typography, spacing, components).
 
 ## Prerequisites
 
